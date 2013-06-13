@@ -2,9 +2,7 @@ from flask import Flask,request,Response,make_response
 
 import plivo
 
-from config_parser import get_config
 
-configs=get_config()
 
 SIP="sip:abishek130613133829@phone.plivo.com"
 
@@ -14,7 +12,6 @@ CALLLER_NAME="plivo"
 
 CALLLER_ID=19512977322
 
-plivo_api=plivo.RestAPI(configs["AUTH_ID"],configs["AUTH_TOKEN"])
 
 app = Flask(__name__)
 
