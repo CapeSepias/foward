@@ -15,7 +15,6 @@ CALLLER_ID=19512977322
 
 app = Flask(__name__)
 
-app.debug=True
 
 @app.route('/forward')
 
