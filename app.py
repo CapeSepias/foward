@@ -3,7 +3,6 @@ from flask import Flask,request,Response,make_response,url_for
 import plivo
 
 
-
 SIP="sip:abishek130613133829@phone.plivo.com"
 
 MOBILE=919940728522
@@ -41,7 +40,7 @@ def forward():
 def voice_mail():
 	response=plivo.Response()
 	response.addSpeak("Please leave your message after the beep")
-	response.addRecord(action=BASE_URL+url_for('message'))
+	response.addRecord(action=BASE_URL+url_for('message'),method='GET')
 	response.addSpeak("Thank you, your message has been recorded")
 	response.addHangup()
 	response=make_response(response.to_xml())
@@ -63,6 +62,7 @@ def message():
 	response.headers['Content-Type']='text/xml'
 	
 	return response
+
 
 
 
