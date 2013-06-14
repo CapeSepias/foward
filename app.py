@@ -47,7 +47,8 @@ def forward():
 	response.addDial(callerId=CALLER_ID).addNumber(MOBILE)
 	response.addSpeak("The number you're trying is not reachable at the moment. You are being redirected to the voice mail")
 	response.addDial(callerId=CALLER_ID,
-			action=BASE_URL+url_for('voice_mail')).addNumber(VOICEMAIL_NUMBER)
+			action=BASE_URL+url_for('voice_mail'),
+			method='GET').addNumber(VOICEMAIL_NUMBER)
 	response=make_response(response.to_xml())
 	response.headers['Content-Type']='text/xml'
 	
