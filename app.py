@@ -6,7 +6,8 @@ from config_parser import get_config
 
 from helper import rent_number
 
-from model import create_forward_entry,get_details_from
+from model import create_forward_entry,get_details_from,get_mobile
+
 configs=get_config()
 
 PLIVO_API=plivo.RestAPI(configs["AUTH_ID"],configs["AUTH_TOKEN"])
@@ -15,7 +16,6 @@ PLIVO_API=plivo.RestAPI(configs["AUTH_ID"],configs["AUTH_TOKEN"])
 
 CALLER_ID="19512977322"
 BASE_URL="http://ancient-taiga-3101.herokuapp.com"
-MOBILE=0
 app = Flask(__name__)
 
 app.debug=True
@@ -73,7 +73,9 @@ def voice_mail():
 
 def message():
 	record_url=request.args.get('RecordUrl','')
+	VOICEMAIL_NUMBER=request.args.get('To','')
 	MESSAGE="Hey, we have received a voice message for you. You can access them at %s" %(record_url)
+	MOBILE=get_mobile(VOICEMAIL_NUMBER)
 	response=plivo.Response()
 	response.addMessage(src=CALLER_ID,dst=MOBILE,body=MESSAGE)
 	response=make_response(response.to_xml())
