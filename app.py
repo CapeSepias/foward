@@ -1,33 +1,52 @@
-from flask import Flask,request,Response,make_response,url_for
+from flask import Flask,request,Response,make_response,url_for,render_template
 
 import plivo
 
+from config_parser import get_config
 
-SIP="sip:abishek130613133829@phone.plivo.com"
+from helper import rent_number
 
-MOBILE=919940728522
+from model import create_forward_entry,get_details_from
+configs=get_config()
 
-CALLLER_NAME="plivo"
+PLIVO_API=plivo.RestAPI(configs["AUTH_ID"],configs["AUTH_TOKEN"])
 
-CALLLER_ID=19512977322
 
+
+CALLER_ID="19512977322"
 BASE_URL="http://ancient-taiga-3101.herokuapp.com"
-
-VOICEMAIL_NUMBER=13235960802
-
+MOBILE=0
 app = Flask(__name__)
 
 app.debug=True
 
+@app.route('/')
+
+def index():
+	return render_template('index.html') 
+
+@app.route('/save')
+
+def save():
+	sip=request.args.get('sip','')
+	mobile=request.args.get('mobile','')
+	caller_name=request.args.get('caller_name','')
+	voicemail_number,plivo_number=map(lambda app_name:rent_number(PLIVO_API,app_name),["Voice Mail","Call Forward"])
+	create_forward_entry(sip,mobile,caller_name,
+			     voicemail_number,plivo_number)
+	return "Your plivo phone number is %s" %(plivo_number)
+
 @app.route('/forward')
 
 def forward():
+	plivo_number=request.args.get('To','')
+	CALLER_NAME,SIP,MOBILE,VOICEMAIL_NUMBER=get_details_from(plivo_number)
 	response=plivo.Response()
 	response.addSpeak("Please wait while we are forwarding your call")
-	response.addDial(callerName=CALLLER_NAME).addUser(SIP)
-	response.addDial(callerId=CALLLER_ID).addNumber(MOBILE)
-	response.addSpeak("The number you're trying is not reachable at the moment. Please leave a message after the beep")
-	response.addDial(callerId=CALLLER_ID,
+	response.addDial(callerName=CALLER_NAME).addUser(SIP)
+	response.addDial(callerId=CALLER_ID).addNumber(MOBILE)
+	response.addSpeak("The number you're trying is not reachable at the moment. You are being redirected to the voice mail")
+	response.addDial(callerId=CALLER_ID,
 			action=BASE_URL+url_for('voice_mail')).addNumber(VOICEMAIL_NUMBER)
 	response=make_response(response.to_xml())
 	response.headers['Content-Type']='text/xml'
@@ -56,7 +75,7 @@ def message():
 	record_url=request.args.get('RecordUrl','')
 	MESSAGE="Hey, we have received a voice message for you. You can access them at %s" %(record_url)
 	response=plivo.Response()
-	response.addMessage(src=CALLLER_ID,dst=MOBILE,body=MESSAGE)
+	response.addMessage(src=CALLER_ID,dst=MOBILE,body=MESSAGE)
 	response=make_response(response.to_xml())
 
 	response.headers['Content-Type']='text/xml'
