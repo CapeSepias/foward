@@ -23,5 +23,5 @@ def get_details_from(number=0):
 		forward_table.mobile,forward_table.voicemail_number
 		)
 def get_mobile(number):
-	forward_table=Forward.objects.get(voicemail_number=number)
+	forward_table=Forward.objects.get(plivo_number=number)
 	return forward_table.mobile
