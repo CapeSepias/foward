@@ -1,10 +1,9 @@
-
 call forward
 ==========
 
 This application is a jab at trying to showcase a wide variety of Plivo's API like Direct Dialing, Call Recording, Text Messaging,Renting number, Application API to build an app which provides user with a plivo number and a voice mail number which when called to would forward the incoming to call to the specified SIP Endpoint or Mobile Phone. If the call is not answered the call is automatically transferred to the Voice Mail, wherein the caller can record his message. A link to the voice message would be texted to the user at his mobile number
 
-__Installation___
+__Installation__
 
 
 Clone the repo:
@@ -51,7 +50,7 @@ __Workflow__ :
    
    - The apps allows one to create conference on a subject and invite people to the conference by adding their mobile numbers.
 
-   !["Call Forward"](https://raw.github.com/abishekk92/forward/master/screenshots/Screenshot%20from%202013-06-15%2023:12:23.png)
+   !["Call Forward"](https://raw.github.com/abishekk92/foward/master/screenshots/forward.png)
  
    
 
