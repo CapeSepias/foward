@@ -77,12 +77,10 @@ def message():
 	plivo_number=request.args.get('To','')
 	MESSAGE="Hey, we have received a voice message for you. You can access them at %s" %(record_url)
 	MOBILE=get_mobile(plivo_number)
-	response=plivo.Response()
-	response.addMessage(src=CALLER_ID,dst=MOBILE,body=MESSAGE)
-	response=make_response(response.to_xml())
-
-	response.headers['Content-Type']='text/xml'
-	
+	response=PLIVO_API.send_message({'src':CALLER_ID,
+					 'dst':MOBILE,
+					 'text': MESSAGE
+					})
 	return response
 
 
