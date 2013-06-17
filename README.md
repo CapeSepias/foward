@@ -1,10 +1,9 @@
-
 call forward
 ==========
 
 This application is a jab at trying to showcase a wide variety of Plivo's API like Direct Dialing, Call Recording, Text Messaging,Renting number, Application API to build an app which provides user with a plivo number and a voice mail number which when called to would forward the incoming to call to the specified SIP Endpoint or Mobile Phone. If the call is not answered the call is automatically transferred to the Voice Mail, wherein the caller can record his message. A link to the voice message would be texted to the user at his mobile number
 
-__Installation___
+__Installation__
 
 
 Clone the repo:
@@ -49,16 +48,16 @@ Note:
 
 __Workflow__ : 
    
-   - The apps allows one to create conference on a subject and invite people to the conference by adding their mobile numbers.
+   - The app doubles up as a call forwarding and a voice mail system. You can create an entry in the table to get a plivo number and voice mail number, which can be used for call forwarding and voice mail respectively.
 
-   !["Call Forward"](https://raw.github.com/abishekk92/forward/master/screenshots/Screenshot%20from%202013-06-15%2023:12:23.png)
+   !["Call Forward"](https://raw.github.com/abishekk92/foward/master/screenshots/forward.png)
  
    
 
-   - Once the conference is created, the members are notified with the conference number and pin. The number is provisioned on the fly using Plivo's rent number endpoint. The code would look like
+   - The number is provisioned on the fly using Plivo's rent number endpoint. The code would look like
      
     ```python
-            def rent_number(plivo_api,app_name="Conference Call"):
+            def rent_number(plivo_api,app_name):
                 app_id=get_appid(plivo_api,app_name)
 	            response=plivo_api.get_number_group({"country_iso":"US","region":"california"})
 	            group_id=response[1]["objects"][0]["group_id"]
@@ -67,22 +66,36 @@ __Workflow__ :
 	            return number
      ```
 
-   - Once the conference is over and if the moderator has opted in for the conference to be recorded, A message containing the record url is messaged
-      
-      ```python
-                response.addConference(body='plivo',
-    			       action= BASE_URL+url_for('submit_recording'),
-				       method='GET',
-				       record=record_value)
-      ```
-      The message is sent out using the Plivo API as follows
-
-     ```python 
-                def notify(message,mobile):
-                    response=plivo_api.send_message({'src':CALLER_ID,
-				                                    'dst':mobile,
-				                                    'text':message,
-				                                    'type':'sms'
-			    	                                })
-	                return response
+   - The Call forwarding is done using Plivo's Direct Dialing. By setting the path to the XML as the answer_url, as soon as the call is answered, the XML would get executed on Plivo. It is done using plivo helper as follows
+     
+     ```python
+		response=plivo.Response()
+		response.addSpeak("Please wait while we are forwarding your call")
+		response.addDial(callerName=CALLER_NAME).addUser(SIP)
+		response.addDial(callerId=CALLER_ID).addNumber(MOBILE)
+		response.addSpeak("The number you're trying is not reachable at the moment. You are being redirected to the voice mail")
+		response.addDial(callerId=CALLER_ID,
+				action=BASE_URL+url_for('voice_mail'),
+				method='GET').addNumber(VOICEMAIL_NUMBER)
+		response=make_response(response.to_xml())
      ```
+  
+   - If the mobile phone is not reachable, it's automatically forwarded to the voice mail, which prompts the user for a message. This is done as 
+     
+     ```python
+           	response=plivo.Response()
+		response.addSpeak("Please leave your message after the beep")
+		response.addRecord(action=BASE_URL+url_for('message'),method='GET')
+		response.addSpeak("Thank you, your message has been recorded")
+		response.addHangup()
+		response=make_response(response.to_xml())
+		response.headers['Content-Type']='text/xml'
+     ```
+   - Once the voice mail has been recieved and the call is terminated, the RecordUrl obtained from Plivo is sent as a text message to the user as a notification.
+  
+    ```python
+		response=PLIVO_API.send_message({'src':CALLER_ID,
+					 'dst':MOBILE,
+					 'text': MESSAGE
+					})
+    ```
