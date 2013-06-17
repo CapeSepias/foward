@@ -43,6 +43,12 @@ def forward():
 	CALLER_NAME,SIP,MOBILE,VOICEMAIL_NUMBER=get_details_from(plivo_number)
 	response=plivo.Response()
 	response.addSpeak("Please wait while we are forwarding your call")
+'''
+	addDial adds Dial element to Reponse. Dial element is useful in Direct Dialing, that is when the request is made to the route containing the XML,Plivo executes each of the element one by one. When it encounters Dial it calls the first Dial element and goes on to the next one, should it fail and so on.
+	Dial elements can be Dial:User or Dial:Number
+	<Dial callerName="callerName">@sip_endpoint</Dial>
+	<Dial callerId="caller_id">phone_number</Dial>
+'''
 	response.addDial(callerName=CALLER_NAME).addUser(SIP)
 	response.addDial(callerId=CALLER_ID).addNumber(MOBILE)
 	response.addSpeak("The number you're trying is not reachable at the moment. You are being redirected to the voice mail")
@@ -59,10 +65,22 @@ def forward():
 
 def voice_mail():
 	response=plivo.Response()
+	
+	'''
+	 Adds speak element to the already created ResponseElement. Now the XML would look something like
+	 <Response> <Speak> Hello welcome to my awesome app! </Speak> </Response>. When the XML is executed at Plivo's end, these words would be spoken
+	'''
+	
 	response.addSpeak("Please leave your message after the beep")
+	
+	'''
+	Adds a Record Element to Response. This is useful when the call needs to be recorded.
+	<Record action="" method="GET|POST"/>
+	'''
+
 	response.addRecord(action=BASE_URL+url_for('message'),method='GET')
 	response.addSpeak("Thank you, your message has been recorded")
-	response.addHangup()
+	response.addHangup() ## Adds Hangup Element, when the control enters this element while executing the XML, It Hangs up the current call
 	response=make_response(response.to_xml())
 	response.headers['Content-Type']='text/xml'
 	
@@ -77,6 +95,11 @@ def message():
 	plivo_number=request.args.get('To','')
 	MESSAGE="Hey, we have received a voice message for you. You can access them at %s" %(record_url)
 	MOBILE=get_mobile(plivo_number)
+	
+	'''
+	send_message from plivo_helper lib sends text message to the given number from the specified caller_id
+	'''
+	
 	response=PLIVO_API.send_message({'src':CALLER_ID,
 					 'dst':MOBILE,
 					 'text': MESSAGE
