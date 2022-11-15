@@ -9,5 +9,5 @@ itsdangerous==0.21
 mongoengine==0.8.2
 plivo==0.4.1
 pymongo==2.5.2
-requests==1.2.3
+requests==2.20.0
 wsgiref==0.1.2
